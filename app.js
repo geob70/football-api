@@ -2,24 +2,18 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 require("dotenv").config();
+const { mongourl } = require("./config/keys");
 const app = express();
 
 const teamRoute = require("./api/route/teams");
 const fixtureRoute = require("./api/route/fixtures");
 const adminRoute = require("./api/route/admin");
 
-mongoose.connect(
-  "mongodb+srv://george:" +
-    process.env.DB_PASSWORD +
-    "@football-db-y9lo8.mongodb.net/" +
-    process.env.DB_NAME +
-    "?retryWrites=true&w=majority",
-  {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useCreateIndex: true,
-  }
-);
+mongoose.connect(mongourl, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  useCreateIndex: true,
+});
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
