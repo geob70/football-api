@@ -3,10 +3,10 @@ const router = express.Router();
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-// const redis = require("redis");
-// const redisPort = process.env.PORT || 6379;
+const redis = require("redis");
+const redisPort = process.env.PORT || 6379;
 
-// const client = redis.createClient(redisPort);
+const client = redis.createClient(redisPort);
 
 const Admin = require("../models/admin");
 
@@ -52,7 +52,7 @@ router.post("/login", async (req, res, next) => {
           { expiresIn: "1800s" },
           (err, token) => {
             if (err) return res.status(401).json({ message: "Unauthorized" });
-            // client.setex("token", 1800, token);
+            client.setex("token", 1800, token);
             return res.status(200).json({
               token,
             });
@@ -72,22 +72,22 @@ router.delete("/logout", async (req, res, next) => {
   return res.status(204);
 });
 
-// router.get("/get-token", cache, async (req, res, next) => {
-//   jwt.verify(req.token, "secretKey", (err, data) => {
-//     if (err) {
-//       return res.status(403).json({
-//         message: err,
-//       });
-//     }
-//     res.status(200).json({
-//       admin: {
-//         username: data.admin.username,
-//         email: data.admin.email,
-//       },
-//       token: req.token,
-//     });
-//   });
-// });
+router.get("/get-token", cache, async (req, res, next) => {
+  jwt.verify(req.token, "secretKey", (err, data) => {
+    if (err) {
+      return res.status(403).json({
+        message: err,
+      });
+    }
+    res.status(200).json({
+      admin: {
+        username: data.admin.username,
+        email: data.admin.email,
+      },
+      token: req.token,
+    });
+  });
+});
 
 router.post("/verify-token", async (req, res, next) => {
   console.log(req.body);
@@ -107,14 +107,14 @@ router.post("/verify-token", async (req, res, next) => {
   });
 });
 
-// function cache(req, res, next) {
-//   client.get("token", (err, data) => {
-//     if (err) res.sendStatus(400).json({ error: err });
-//     if (data !== null) {
-//       req.token = data;
-//       next();
-//     } else return res.sendStatus(400);
-//   });
-// }
+function cache(req, res, next) {
+  client.get("token", (err, data) => {
+    if (err) res.sendStatus(400).json({ error: err });
+    if (data !== null) {
+      req.token = data;
+      next();
+    } else return res.sendStatus(400);
+  });
+}
 
 module.exports = router;
