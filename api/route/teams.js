@@ -21,7 +21,8 @@ router.get("/", (req, res, next) => {
 router.post("/add", verifyToken, (req, res, next) => {
   jwt.verify(req.token, "secretKey", (err) => {
     if (err) {
-      return res.status(403).json({
+      return res.json({
+        status: 403,
         message: "Forbidden",
       });
     }
@@ -34,11 +35,13 @@ router.post("/add", verifyToken, (req, res, next) => {
       .save()
       .then(() => {
         res.status(201).json({
+          status: 201,
           message: "Created team",
         });
       })
       .catch((err) => {
-        res.status(500).json({
+        res.json({
+          status: 500,
           error: err,
         });
       });
@@ -48,20 +51,29 @@ router.post("/add", verifyToken, (req, res, next) => {
 router.patch("/:teamId", verifyToken, (req, res, next) => {
   jwt.verify(req.token, "secretKey", (err) => {
     if (err) {
-      return res.status(403).json({
+      return res.json({
+        status: 403,
         message: "Forbidden",
       });
     }
     const id = req.params.teamId;
-    Team.updateOne({ _id: id }, { $set: { name: req.body.name } })
+    Team.updateOne(
+      { _id: id },
+      { $set: { name: req.body.name, location: req.body.location } }
+    )
       .exec()
       .then(() => {
         res.status(200).json({
+          status: 200,
           message: "Updated sucessfully",
         });
       })
       .catch((err) => {
-        res.status(500).json({
+        // res.status(500).json({
+        //   error: err,
+        // });
+        res.json({
+          status: 500,
           error: err,
         });
       });
@@ -71,7 +83,8 @@ router.patch("/:teamId", verifyToken, (req, res, next) => {
 router.delete("/:teamId", verifyToken, (req, res, next) => {
   jwt.verify(req.token, "secretKey", (err) => {
     if (err) {
-      return res.status(403).json({
+      return res.json({
+        status: 403,
         message: "Forbidden",
       });
     }
@@ -79,10 +92,11 @@ router.delete("/:teamId", verifyToken, (req, res, next) => {
     Team.deleteOne({ _id: id })
       .exec()
       .then(() => {
-        res.status(200).json({ message: "Team deleted" });
+        res.status(204).json({ status: 204, message: "Team deleted" });
       })
       .catch((err) => {
-        res.status(500).json({
+        res.json({
+          status: 500,
           error: err,
         });
       });

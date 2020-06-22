@@ -22,10 +22,11 @@ router.post("/sign-up", async (req, res, next) => {
     admin
       .save()
       .then(() => {
-        res.status(201).json({ message: "Admin created" });
+        res.status(201).json({ status: 201, message: "Admin created" });
       })
       .catch((err) => {
-        res.status(500).json({
+        res.json({
+          status: 500,
           message: err,
         });
       });
@@ -36,13 +37,20 @@ router.post("/sign-up", async (req, res, next) => {
   }
 });
 
-router.post("/login", async (req, res, next) => {
+router.post("/login", (req, res, next) => {
   Admin.findOne({ email: req.body.email })
     .exec()
     .then((admin) => {
+      if (admin == null) {
+        return res.json({
+          status: 401,
+          message: "email doesn't esixt",
+        });
+      }
       bcrypt.compare(req.body.password, admin.password).then((response) => {
-        if (response !== true) {
-          return res.status(404).json({
+        if (!response) {
+          return res.json({
+            status: 401,
             message: "password doesn't match",
           });
         }
@@ -51,9 +59,10 @@ router.post("/login", async (req, res, next) => {
           "secretKey",
           { expiresIn: "1800s" },
           (err, token) => {
-            if (err) return res.status(401).json({ message: "Unauthorized" });
+            if (err) return res.json({ status: 401, message: "Unauthorized" });
             // client.setex("token", 1800, token);
             return res.status(200).json({
+              status: 200,
               token,
             });
           }
@@ -61,14 +70,19 @@ router.post("/login", async (req, res, next) => {
       });
     })
     .catch((err) => {
-      return res.status(500).json({
+      // console.log(err);
+      // return res.status(500).json({
+      //   error: err,
+      // });
+      return res.json({
+        status: 500,
         error: err,
       });
     });
 });
 
 router.delete("/logout", async (req, res, next) => {
-  client.del("token");
+  // client.del("token");
   return res.status(204);
 });
 
@@ -90,14 +104,15 @@ router.delete("/logout", async (req, res, next) => {
 // });
 
 router.post("/verify-token", async (req, res, next) => {
-  console.log(req.body);
   jwt.verify(req.body.token, "secretKey", (err, data) => {
     if (err) {
-      return res.status(403).json({
+      return res.json({
+        status: 403,
         message: err,
       });
     }
     res.status(200).json({
+      status: 200,
       admin: {
         username: data.admin.username,
         email: data.admin.email,

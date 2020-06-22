@@ -23,7 +23,8 @@ router.get("/", (req, res, next) => {
 router.post("/add", verifyToken, (req, res, next) => {
   jwt.verify(req.token, "secretKey", (err) => {
     if (err) {
-      return res.status(403).json({
+      return res.json({
+        status: 403,
         message: "Forbidden",
       });
     }
@@ -31,7 +32,8 @@ router.post("/add", verifyToken, (req, res, next) => {
       Team.findById(req.body.teamB)
         .then((teamB) => {
           if (!teamB || !teamA) {
-            return res.status(404).json({
+            return res.json({
+              status: 404,
               message: "Team not found",
             });
           }
@@ -45,11 +47,12 @@ router.post("/add", verifyToken, (req, res, next) => {
             location: _location,
           });
           fixture.save().then(() => {
-            res.status(200).json({ message: "fixture created" });
+            res.status(201).json({ status: 201, message: "fixture created" });
           });
         })
         .catch((err) => {
-          res.status(500).json({
+          res.json({
+            status: 500,
             error: err,
           });
         });
@@ -60,7 +63,8 @@ router.post("/add", verifyToken, (req, res, next) => {
 router.patch("/:fixtureId", verifyToken, (req, res, next) => {
   jwt.verify(req.token, "secretKey", (err) => {
     if (err) {
-      return res.status(403).json({
+      return res.json({
+        status: 403,
         message: "Forbidden",
       });
     }
@@ -69,7 +73,8 @@ router.patch("/:fixtureId", verifyToken, (req, res, next) => {
       Team.findById(req.body.teamB)
         .then((teamB) => {
           if (!teamB || !teamA) {
-            return res.status(404).json({
+            return res.json({
+              status: 404,
               message: "Team not found",
             });
           }
@@ -88,11 +93,14 @@ router.patch("/:fixtureId", verifyToken, (req, res, next) => {
           )
             .exec()
             .then(() => {
-              return res.status(200).json({ message: "fixture updated" });
+              return res
+                .status(200)
+                .json({ status: 200, message: "fixture updated" });
             });
         })
         .catch((err) => {
-          res.status(500).json({
+          res.json({
+            status: 500,
             error: err,
           });
         });
@@ -100,21 +108,23 @@ router.patch("/:fixtureId", verifyToken, (req, res, next) => {
   });
 });
 
-router.delete("/:fixtureId", (req, res, next) => {
+router.delete("/:fixtureId", verifyToken, (req, res, next) => {
   jwt.verify(req.token, "secretKey", (err) => {
     if (err) {
-      return res.status(403).json({
-        message: "Forbidden",
+      return res.json({
+        status: 403,
+        message: err,
       });
     }
     const id = req.params.fixtureId;
     Fixture.deleteOne({ _id: id })
       .exec()
       .then(() => {
-        res.status(200).json({ message: "Fixture deleted" });
+        res.status(204).json({ status: 204, message: "Fixture deleted" });
       })
       .catch((err) => {
-        res.status(500).json({
+        res.json({
+          status: 500,
           error: err,
         });
       });
